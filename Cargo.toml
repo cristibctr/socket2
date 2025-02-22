@@ -51,7 +51,7 @@ targets = [
 features = ["all"]
 
 [target.'cfg(any(unix, target_os = "wasi"))'.dependencies]
-libc = { git = "https://github.com/wasix-org/libc.git", branch = "v0.2.152" }
+libc = { git = "https://github.com/cristibctr/libc-0.2.169", branch = "wasix-0.2.169" }
 
 [target.'cfg(windows)'.dependencies.windows-sys]
 version = "0.52"
