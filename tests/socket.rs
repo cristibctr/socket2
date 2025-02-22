@@ -5,6 +5,7 @@
         target_os = "android",
         target_os = "freebsd",
         target_os = "ios",
+        target_os = "visionos",
         target_os = "linux",
         target_os = "macos",
         target_os = "tvos",
@@ -30,6 +31,7 @@ use std::net::{Ipv6Addr, SocketAddrV6};
         target_os = "android",
         target_os = "freebsd",
         target_os = "ios",
+        target_os = "visionos",
         target_os = "linux",
         target_os = "macos",
         target_os = "tvos",
@@ -227,6 +229,7 @@ fn assert_common_flags(socket: &Socket, expected: bool) {
     assert_close_on_exec(socket, expected);
     #[cfg(any(
         target_os = "ios",
+        target_os = "visionos",
         target_os = "macos",
         target_os = "tvos",
         target_os = "watchos",
@@ -351,6 +354,7 @@ fn set_cloexec() {
         target_os = "dragonfly",
         target_os = "freebsd",
         target_os = "fuchsia",
+        target_os = "hurd",
         target_os = "linux",
         target_os = "wasi",
         target_os = "netbsd",
@@ -419,6 +423,7 @@ where
     feature = "all",
     any(
         target_os = "ios",
+        target_os = "visionos",
         target_os = "macos",
         target_os = "tvos",
         target_os = "watchos",
@@ -439,6 +444,7 @@ fn set_nosigpipe() {
 /// Assert that `SO_NOSIGPIPE` is set on `socket`.
 #[cfg(any(
     target_os = "ios",
+    target_os = "visionos",
     target_os = "macos",
     target_os = "tvos",
     target_os = "watchos",
@@ -734,6 +740,10 @@ fn send_from_recv_to_vectored() {
     #[cfg(all(unix, not(target_os = "redox")))]
     assert_eq!(flags.is_out_of_band(), false);
     assert_eq!(flags.is_truncated(), false);
+    #[cfg(all(feature = "all", any(target_os = "android", target_os = "linux")))]
+    assert_eq!(flags.is_confirm(), false);
+    #[cfg(all(feature = "all", any(target_os = "android", target_os = "linux")))]
+    assert_eq!(flags.is_dontroute(), false);
     assert_eq!(
         addr.as_socket_ipv6().unwrap(),
         addr_a.as_socket_ipv6().unwrap()
@@ -863,6 +873,7 @@ fn tcp_keepalive() {
             target_os = "freebsd",
             target_os = "fuchsia",
             target_os = "ios",
+            target_os = "visionos",
             target_os = "linux",
             target_os = "macos",
             target_os = "wasi",
@@ -881,6 +892,7 @@ fn tcp_keepalive() {
             target_os = "freebsd",
             target_os = "fuchsia",
             target_os = "ios",
+            target_os = "visionos",
             target_os = "linux",
             target_os = "macos",
             target_os = "wasi",
@@ -909,6 +921,7 @@ fn tcp_keepalive() {
             target_os = "fuchsia",
             target_os = "illumos",
             target_os = "ios",
+            target_os = "visionos",
             target_os = "linux",
             target_os = "macos",
             target_os = "wasi",
@@ -931,6 +944,7 @@ fn tcp_keepalive() {
             target_os = "fuchsia",
             target_os = "illumos",
             target_os = "ios",
+            target_os = "visionos",
             target_os = "linux",
             target_os = "macos",
             target_os = "wasi",
@@ -980,6 +994,7 @@ fn device() {
     feature = "all",
     any(
         target_os = "ios",
+        target_os = "visionos",
         target_os = "macos",
         target_os = "tvos",
         target_os = "watchos",
@@ -1025,6 +1040,7 @@ fn device() {
     feature = "all",
     any(
         target_os = "ios",
+        target_os = "visionos",
         target_os = "macos",
         target_os = "tvos",
         target_os = "watchos",
@@ -1072,6 +1088,7 @@ fn device_v6() {
         target_os = "android",
         target_os = "freebsd",
         target_os = "ios",
+        target_os = "visionos",
         target_os = "linux",
         target_os = "macos",
         target_os = "tvos",
@@ -1233,6 +1250,7 @@ fn r#type() {
         unix,
         not(any(
             target_os = "ios",
+            target_os = "visionos",
             target_os = "macos",
             target_os = "tvos",
             target_os = "watchos",
@@ -1360,8 +1378,8 @@ test!(
 #[cfg(all(feature = "all", target_os = "linux"))]
 test!(
     #[ignore = "setting `IP_TRANSPARENT` requires the `CAP_NET_ADMIN` capability (works when running as root)"]
-    ip_transparent,
-    set_ip_transparent(true)
+    ip_transparent_v4,
+    set_ip_transparent_v4(true)
 );
 #[cfg(all(feature = "all", any(target_os = "fuchsia", target_os = "linux")))]
 test!(
@@ -1395,19 +1413,21 @@ test!(freebind, set_freebind(true));
 #[cfg(all(feature = "all", target_os = "linux"))]
 test!(IPv6 freebind_ipv6, set_freebind_ipv6(true));
 
-test!(IPv4 ttl, set_ttl(40));
+test!(IPv4 ttl_v4, set_ttl_v4(40));
 
 #[cfg(not(any(
     target_os = "fuchsia",
     target_os = "redox",
     target_os = "solaris",
     target_os = "illumos",
+    target_os = "haiku",
 )))]
-test!(IPv4 tos, set_tos(96));
+test!(IPv4 tos_v4, set_tos_v4(96));
 
 #[cfg(not(any(
     target_os = "dragonfly",
     target_os = "fuchsia",
+    target_os = "hurd",
     target_os = "illumos",
     target_os = "netbsd",
     target_os = "openbsd",
@@ -1415,8 +1435,9 @@ test!(IPv4 tos, set_tos(96));
     target_os = "solaris",
     target_os = "windows",
     target_os = "vita",
+    target_os = "haiku",
 )))]
-test!(IPv4 recv_tos, set_recv_tos(true));
+test!(IPv4 recv_tos_v4, set_recv_tos_v4(true));
 
 #[cfg(not(windows))] // TODO: returns `WSAENOPROTOOPT` (10042) on Windows.
 test!(IPv4 broadcast, set_broadcast(true));
@@ -1454,6 +1475,7 @@ test!(IPv6 tclass_v6, set_tclass_v6(96));
 #[cfg(not(any(
     target_os = "dragonfly",
     target_os = "fuchsia",
+    target_os = "hurd",
     target_os = "illumos",
     target_os = "netbsd",
     target_os = "openbsd",
@@ -1461,8 +1483,27 @@ test!(IPv6 tclass_v6, set_tclass_v6(96));
     target_os = "solaris",
     target_os = "windows",
     target_os = "vita",
+    target_os = "haiku",
 )))]
 test!(IPv6 recv_tclass_v6, set_recv_tclass_v6(true));
+
+#[cfg(all(
+    feature = "all",
+    not(any(
+        target_os = "dragonfly",
+        target_os = "fuchsia",
+        target_os = "hurd",
+        target_os = "illumos",
+        target_os = "netbsd",
+        target_os = "openbsd",
+        target_os = "redox",
+        target_os = "solaris",
+        target_os = "windows",
+        target_os = "vita",
+        target_os = "haiku",
+    ))
+))]
+test!(IPv6 recv_hoplimit_v6, set_recv_hoplimit_v6(true));
 
 #[cfg(all(
     feature = "all",
@@ -1472,6 +1513,11 @@ test!(
     tcp_user_timeout,
     set_tcp_user_timeout(Some(Duration::from_secs(10)))
 );
+
+#[cfg(all(feature = "all", target_os = "linux"))]
+test!(IPv4 multicast_all_v4, set_multicast_all_v4(false));
+#[cfg(all(feature = "all", target_os = "linux"))]
+test!(IPv6 multicast_all_v6, set_multicast_all_v6(false));
 
 #[test]
 #[cfg(not(any(
@@ -1507,6 +1553,7 @@ fn join_leave_multicast_v4_n() {
 #[cfg(not(any(
     target_os = "dragonfly",
     target_os = "haiku",
+    target_os = "hurd",
     target_os = "netbsd",
     target_os = "openbsd",
     target_os = "redox",
@@ -1535,15 +1582,78 @@ fn header_included() {
     };
 
     let initial = socket
-        .header_included()
+        .header_included_v4()
         .expect("failed to get initial value");
     assert_eq!(initial, false, "initial value and argument are the same");
 
     socket
-        .set_header_included(true)
+        .set_header_included_v4(true)
         .expect("failed to set option");
-    let got = socket.header_included().expect("failed to get value");
+    let got = socket.header_included_v4().expect("failed to get value");
     assert_eq!(got, true, "set and get values differ");
+}
+
+#[test]
+#[cfg(all(
+    feature = "all",
+    not(any(
+        target_os = "redox",
+        target_os = "espidf",
+        target_os = "openbsd",
+        target_os = "freebsd",
+        target_os = "dragonfly",
+        target_os = "netbsd"
+    ))
+))]
+fn header_included_ipv6() {
+    let socket = match Socket::new(Domain::IPV6, Type::RAW, None) {
+        Ok(socket) => socket,
+        // Need certain permissions to create a raw sockets.
+        Err(ref err) if err.kind() == io::ErrorKind::PermissionDenied => return,
+        #[cfg(unix)]
+        Err(ref err) if err.raw_os_error() == Some(libc::EPROTONOSUPPORT) => return,
+        Err(err) => panic!("unexpected error creating socket: {}", err),
+    };
+
+    let initial = socket
+        .header_included_v6()
+        .expect("failed to get initial value");
+    assert_eq!(initial, false, "initial value and argument are the same");
+
+    socket
+        .set_header_included_v6(true)
+        .expect("failed to set option");
+    let got = socket.header_included_v6().expect("failed to get value");
+    assert_eq!(got, true, "set and get values differ");
+}
+
+#[test]
+#[cfg(all(
+    feature = "all",
+    any(
+        target_os = "android",
+        target_os = "fuchsia",
+        target_os = "linux",
+        target_os = "windows"
+    )
+))]
+fn original_dst() {
+    let socket = Socket::new(Domain::IPV4, Type::STREAM, None).unwrap();
+    #[cfg(not(target_os = "windows"))]
+    let expected = Some(libc::ENOENT);
+    #[cfg(target_os = "windows")]
+    let expected = Some(windows_sys::Win32::Networking::WinSock::WSAEINVAL);
+
+    match socket.original_dst() {
+        Ok(_) => panic!("original_dst on non-redirected socket should fail"),
+        Err(err) => assert_eq!(err.raw_os_error(), expected),
+    }
+
+    let socket = Socket::new(Domain::IPV6, Type::STREAM, None).unwrap();
+    match socket.original_dst() {
+        Ok(_) => panic!("original_dst on non-redirected socket should fail"),
+        Err(err) => assert_eq!(err.raw_os_error(), expected),
+    }
 }
 
 #[test]
@@ -1551,34 +1661,26 @@ fn header_included() {
     feature = "all",
     any(target_os = "android", target_os = "fuchsia", target_os = "linux")
 ))]
-fn original_dst() {
-    let socket = Socket::new(Domain::IPV4, Type::STREAM, None).unwrap();
-    match socket.original_dst() {
-        Ok(_) => panic!("original_dst on non-redirected socket should fail"),
-        Err(err) => assert_eq!(err.raw_os_error(), Some(libc::ENOENT)),
-    }
-
-    let socket = Socket::new(Domain::IPV6, Type::STREAM, None).unwrap();
-    match socket.original_dst() {
-        Ok(_) => panic!("original_dst on non-redirected socket should fail"),
-        Err(err) => assert_eq!(err.raw_os_error(), Some(libc::ENOENT)),
-    }
-}
-
-#[test]
-#[cfg(all(feature = "all", any(target_os = "android", target_os = "linux")))]
 fn original_dst_ipv6() {
     let socket = Socket::new(Domain::IPV6, Type::STREAM, None).unwrap();
+    #[cfg(not(target_os = "windows"))]
+    let expected = Some(libc::ENOENT);
+    #[cfg(target_os = "windows")]
+    let expected = Some(windows_sys::Win32::Networking::WinSock::WSAEINVAL);
+    #[cfg(not(target_os = "windows"))]
+    let expected_v4 = Some(libc::EOPNOTSUPP);
+    #[cfg(target_os = "windows")]
+    let expected_v4 = Some(windows_sys::Win32::Networking::WinSock::WSAEINVAL);
     match socket.original_dst_ipv6() {
         Ok(_) => panic!("original_dst_ipv6 on non-redirected socket should fail"),
-        Err(err) => assert_eq!(err.raw_os_error(), Some(libc::ENOENT)),
+        Err(err) => assert_eq!(err.raw_os_error(), expected),
     }
 
     // Not supported on IPv4 socket.
     let socket = Socket::new(Domain::IPV4, Type::STREAM, None).unwrap();
     match socket.original_dst_ipv6() {
         Ok(_) => panic!("original_dst_ipv6 on non-redirected socket should fail"),
-        Err(err) => assert_eq!(err.raw_os_error(), Some(libc::EOPNOTSUPP)),
+        Err(err) => assert_eq!(err.raw_os_error(), expected_v4),
     }
 }
 
@@ -1675,4 +1777,20 @@ fn cookie() {
         Ok(cookie) => assert_eq!(cookie, first_socket_cookie.unwrap()),
         Err(err) => panic!("Could not get socket cookie a second time, err: {err}"),
     }
+}
+
+#[cfg(all(unix, target_os = "linux"))]
+#[test]
+fn set_passcred() {
+    let socket = Socket::new(Domain::UNIX, Type::DGRAM, None).unwrap();
+    assert!(!socket.passcred().unwrap());
+
+    socket.set_passcred(true).unwrap();
+    assert!(socket.passcred().unwrap());
+
+    let socket = Socket::new(Domain::UNIX, Type::STREAM, None).unwrap();
+    assert!(!socket.passcred().unwrap());
+
+    socket.set_passcred(true).unwrap();
+    assert!(socket.passcred().unwrap());
 }

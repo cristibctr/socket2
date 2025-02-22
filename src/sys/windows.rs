@@ -20,13 +20,15 @@ use std::time::{Duration, Instant};
 use std::{process, ptr, slice};
 
 use windows_sys::Win32::Foundation::{SetHandleInformation, HANDLE, HANDLE_FLAG_INHERIT};
-#[cfg(feature = "all")]
-use windows_sys::Win32::Networking::WinSock::SO_PROTOCOL_INFOW;
 use windows_sys::Win32::Networking::WinSock::{
     self, tcp_keepalive, FIONBIO, IN6_ADDR, IN6_ADDR_0, INVALID_SOCKET, IN_ADDR, IN_ADDR_0,
     POLLERR, POLLHUP, POLLRDNORM, POLLWRNORM, SD_BOTH, SD_RECEIVE, SD_SEND, SIO_KEEPALIVE_VALS,
     SOCKET_ERROR, WSABUF, WSAEMSGSIZE, WSAESHUTDOWN, WSAPOLLFD, WSAPROTOCOL_INFOW,
     WSA_FLAG_NO_HANDLE_INHERIT, WSA_FLAG_OVERLAPPED,
+};
+#[cfg(feature = "all")]
+use windows_sys::Win32::Networking::WinSock::{
+    IP6T_SO_ORIGINAL_DST, SOL_IP, SO_ORIGINAL_DST, SO_PROTOCOL_INFOW,
 };
 use windows_sys::Win32::System::Threading::INFINITE;
 
@@ -123,7 +125,6 @@ impl Type {
 
     /// Set `WSA_FLAG_NO_HANDLE_INHERIT` on the socket.
     #[cfg(feature = "all")]
-    #[cfg_attr(docsrs, doc(cfg(all(windows, feature = "all"))))]
     pub const fn no_inherit(self) -> Type {
         self._no_inherit()
     }
@@ -213,6 +214,10 @@ pub(crate) fn set_msghdr_flags(msg: &mut msghdr, flags: c_int) {
 
 pub(crate) fn msghdr_flags(msg: &msghdr) -> RecvFlags {
     RecvFlags(msg.dwFlags as c_int)
+}
+
+pub(crate) fn msghdr_control_len(msg: &msghdr) -> usize {
+    msg.Control.len as _
 }
 
 fn init() {
@@ -853,6 +858,46 @@ pub(crate) fn to_mreqn(
     }
 }
 
+#[cfg(feature = "all")]
+pub(crate) fn original_dst(socket: Socket) -> io::Result<SockAddr> {
+    unsafe {
+        SockAddr::try_init(|storage, len| {
+            syscall!(
+                getsockopt(
+                    socket,
+                    SOL_IP as i32,
+                    SO_ORIGINAL_DST as i32,
+                    storage.cast(),
+                    len,
+                ),
+                PartialEq::eq,
+                SOCKET_ERROR
+            )
+        })
+    }
+    .map(|(_, addr)| addr)
+}
+
+#[cfg(feature = "all")]
+pub(crate) fn original_dst_ipv6(socket: Socket) -> io::Result<SockAddr> {
+    unsafe {
+        SockAddr::try_init(|storage, len| {
+            syscall!(
+                getsockopt(
+                    socket,
+                    SOL_IP as i32,
+                    IP6T_SO_ORIGINAL_DST as i32,
+                    storage.cast(),
+                    len,
+                ),
+                PartialEq::eq,
+                SOCKET_ERROR
+            )
+        })
+    }
+    .map(|(_, addr)| addr)
+}
+
 #[allow(unsafe_op_in_unsafe_fn)]
 pub(crate) fn unix_sockaddr(path: &Path) -> io::Result<SockAddr> {
     // SAFETY: a `sockaddr_storage` of all zeros is valid.
@@ -900,7 +945,6 @@ pub(crate) fn unix_sockaddr(path: &Path) -> io::Result<SockAddr> {
 impl crate::Socket {
     /// Sets `HANDLE_FLAG_INHERIT` using `SetHandleInformation`.
     #[cfg(feature = "all")]
-    #[cfg_attr(docsrs, doc(cfg(all(windows, feature = "all"))))]
     pub fn set_no_inherit(&self, no_inherit: bool) -> io::Result<()> {
         self._set_no_inherit(no_inherit)
     }
@@ -939,7 +983,6 @@ impl crate::Socket {
     }
 }
 
-#[cfg_attr(docsrs, doc(cfg(windows)))]
 impl AsSocket for crate::Socket {
     fn as_socket(&self) -> BorrowedSocket<'_> {
         // SAFETY: lifetime is bound by self.
@@ -947,14 +990,12 @@ impl AsSocket for crate::Socket {
     }
 }
 
-#[cfg_attr(docsrs, doc(cfg(windows)))]
 impl AsRawSocket for crate::Socket {
     fn as_raw_socket(&self) -> RawSocket {
         self.as_raw() as RawSocket
     }
 }
 
-#[cfg_attr(docsrs, doc(cfg(windows)))]
 impl From<crate::Socket> for OwnedSocket {
     fn from(sock: crate::Socket) -> OwnedSocket {
         // SAFETY: sock.into_raw() always returns a valid fd.
@@ -962,14 +1003,12 @@ impl From<crate::Socket> for OwnedSocket {
     }
 }
 
-#[cfg_attr(docsrs, doc(cfg(windows)))]
 impl IntoRawSocket for crate::Socket {
     fn into_raw_socket(self) -> RawSocket {
         self.into_raw() as RawSocket
     }
 }
 
-#[cfg_attr(docsrs, doc(cfg(windows)))]
 impl From<OwnedSocket> for crate::Socket {
     fn from(fd: OwnedSocket) -> crate::Socket {
         // SAFETY: `OwnedFd` ensures the fd is valid.
@@ -977,7 +1016,6 @@ impl From<OwnedSocket> for crate::Socket {
     }
 }
 
-#[cfg_attr(docsrs, doc(cfg(windows)))]
 impl FromRawSocket for crate::Socket {
     unsafe fn from_raw_socket(socket: RawSocket) -> crate::Socket {
         crate::Socket::from_raw(socket as Socket)
