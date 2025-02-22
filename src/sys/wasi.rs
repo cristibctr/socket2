@@ -182,6 +182,10 @@ pub(crate) fn msghdr_flags(msg: &msghdr) -> RecvFlags {
     RecvFlags(msg.msg_flags)
 }
 
+pub(crate) fn msghdr_control_len(msg: &msghdr) -> usize {
+    msg.msg_controllen as _
+}
+
 /// Unix only API.
 impl SockAddr {
     /// Constructs a `SockAddr` with the family `AF_UNIX` and the provided path.
