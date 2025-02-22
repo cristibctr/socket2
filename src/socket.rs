@@ -21,6 +21,8 @@ use std::os::windows::io::{FromRawSocket, IntoRawSocket};
 #[cfg(target_os = "wasi")]
 use std::os::wasi::io::{FromRawFd, IntoRawFd};
 use std::time::Duration;
+use libc::IP_HDRINCL;
+use libc::IPV6_RECVHOPLIMIT;
 
 use crate::sys::{self, c_int, getsockopt, setsockopt, Bool};
 #[cfg(all(unix, not(target_os = "redox")))]
@@ -1135,7 +1137,7 @@ impl Socket {
     #[cfg(all(feature = "all", not(any(target_os = "redox", target_os = "espidf"))))]
     pub fn header_included_v4(&self) -> io::Result<bool> {
         unsafe {
-            getsockopt::<c_int>(self.as_raw(), sys::IPPROTO_IP, libc::IP_HDRINCL)
+            getsockopt::<c_int>(self.as_raw(), sys::IPPROTO_IP, IP_HDRINCL)
                 .map(|included| included != 0)
         }
     }
@@ -1161,7 +1163,7 @@ impl Socket {
             setsockopt(
                 self.as_raw(),
                 sys::IPPROTO_IP,
-                libc::IP_HDRINCL,
+                IP_HDRINCL,
                 included as c_int,
             )
         }
@@ -1646,7 +1648,7 @@ impl Socket {
     ))]
     pub fn header_included_v6(&self) -> io::Result<bool> {
         unsafe {
-            getsockopt::<c_int>(self.as_raw(), sys::IPPROTO_IPV6, sys::IP_HDRINCL)
+            getsockopt::<c_int>(self.as_raw(), sys::IPPROTO_IPV6, IP_HDRINCL)
                 .map(|included| included != 0)
         }
     }
@@ -1679,7 +1681,7 @@ impl Socket {
             setsockopt(
                 self.as_raw(),
                 sys::IPPROTO_IPV6,
-                sys::IP_HDRINCL,
+                IP_HDRINCL,
                 included as c_int,
             )
         }
@@ -1986,7 +1988,7 @@ impl Socket {
     ))]
     pub fn recv_hoplimit_v6(&self) -> io::Result<bool> {
         unsafe {
-            getsockopt::<c_int>(self.as_raw(), sys::IPPROTO_IPV6, sys::IPV6_RECVHOPLIMIT)
+            getsockopt::<c_int>(self.as_raw(), sys::IPPROTO_IPV6, IPV6_RECVHOPLIMIT)
                 .map(|recv_hoplimit| recv_hoplimit > 0)
         }
     }
@@ -2017,7 +2019,7 @@ impl Socket {
             setsockopt(
                 self.as_raw(),
                 sys::IPPROTO_IPV6,
-                sys::IPV6_RECVHOPLIMIT,
+                IPV6_RECVHOPLIMIT,
                 recv_hoplimit as c_int,
             )
         }
