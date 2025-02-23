@@ -63,7 +63,6 @@ feature flag.
 * NetBSD
 * Redox
 * Solaris
-* OpenHarmony
 
 # Minimum Supported Rust Version (MSRV)
 
