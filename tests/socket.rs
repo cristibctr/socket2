@@ -1437,7 +1437,7 @@ test!(IPv4 tos_v4, set_tos_v4(96));
     target_os = "vita",
     target_os = "haiku",
 )))]
-test!(IPv4 recv_tos_v4, set_recv_tos_v4(true));
+test!(IPv4 recv_tos, set_recv_tos(true));
 
 #[cfg(not(windows))] // TODO: returns `WSAENOPROTOOPT` (10042) on Windows.
 test!(IPv4 broadcast, set_broadcast(true));
