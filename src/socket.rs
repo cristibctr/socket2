@@ -1171,11 +1171,11 @@ impl Socket {
 
     /// Get the value of the `IP_TRANSPARENT` option on this socket.
     ///
-    /// For more information about this option, see [`set_ip_transparent_v4`].
+    /// For more information about this option, see [`set_ip_transparent`].
     ///
-    /// [`set_ip_transparent_v4`]: Socket::set_ip_transparent_v4
+    /// [`set_ip_transparent`]: Socket::set_ip_transparent
     #[cfg(all(feature = "all", target_os = "linux"))]
-    pub fn ip_transparent_v4(&self) -> io::Result<bool> {
+    pub fn ip_transparent(&self) -> io::Result<bool> {
         unsafe {
             getsockopt::<c_int>(self.as_raw(), sys::IPPROTO_IP, libc::IP_TRANSPARENT)
                 .map(|transparent| transparent != 0)
@@ -1198,7 +1198,7 @@ impl Socket {
     /// TProxy redirection with the iptables TPROXY target also
     /// requires that this option be set on the redirected socket.
     #[cfg(all(feature = "all", target_os = "linux"))]
-    pub fn set_ip_transparent_v4(&self, transparent: bool) -> io::Result<()> {
+    pub fn set_ip_transparent(&self, transparent: bool) -> io::Result<()> {
         unsafe {
             setsockopt(
                 self.as_raw(),
