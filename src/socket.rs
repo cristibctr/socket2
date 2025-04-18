@@ -2175,7 +2175,8 @@ impl Socket {
             windows,
             target_os = "haiku",
             target_os = "openbsd",
-            target_os = "vita"
+            target_os = "vita",
+            target_os = "wasi", // Exclude wasi
         ))
     ))]
     #[cfg_attr(
@@ -2186,7 +2187,8 @@ impl Socket {
                 windows,
                 target_os = "haiku",
                 target_os = "openbsd",
-                target_os = "vita"
+                target_os = "vita",
+                target_os = "wasi", // Exclude wasi
             ))
         )))
     )]
@@ -2213,7 +2215,7 @@ impl Socket {
             target_os = "macos",
             target_os = "netbsd",
             target_os = "tvos",
-            target_os = "wasi",
+            // target_os = "wasi", // Removed wasi
             target_os = "watchos",
         )
     ))]
@@ -2233,7 +2235,7 @@ impl Socket {
                 target_os = "macos",
                 target_os = "netbsd",
                 target_os = "tvos",
-                target_os = "wasi",
+                // target_os = "wasi", // Removed wasi
                 target_os = "watchos",
             )
         )))
@@ -2264,7 +2266,7 @@ impl Socket {
             target_os = "macos",
             target_os = "netbsd",
             target_os = "tvos",
-            target_os = "wasi",
+            // target_os = "wasi", // Removed wasi
             target_os = "watchos",
         )
     ))]
@@ -2284,7 +2286,7 @@ impl Socket {
                 target_os = "macos",
                 target_os = "netbsd",
                 target_os = "tvos",
-                target_os = "wasi",
+                // target_os = "wasi", // Removed wasi
                 target_os = "watchos",
             )
         )))

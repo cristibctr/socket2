@@ -110,7 +110,11 @@ macro_rules! from {
     ($from: ty, $for: ty) => {
         impl From<$from> for $for {
             fn from(socket: $from) -> $for {
-                #[cfg(any(unix, target_os = "wasi"))]
+                #[cfg(all(target_os = "wasi", target_env = "p1"))]
+                {
+                    unimplemented!("Conversion not supported for WASI P1")
+                }
+                #[cfg(any(unix, all(target_os = "wasi", not(target_env = "p1"))))]
                 unsafe {
                     <$for>::from_raw_fd(socket.into_raw_fd())
                 }
@@ -211,7 +215,7 @@ pub use socket::InterfaceIndexOrAddress;
 ///
 /// This type is freely interconvertible with C's `int` type, however, if a raw
 /// value needs to be provided.
-#[derive(Copy, Clone, Eq, PartialEq)]
+#[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub struct Domain(c_int);
 
 impl Domain {
@@ -255,7 +259,7 @@ impl From<Domain> for c_int {
 ///
 /// This type is freely interconvertible with C's `int` type, however, if a raw
 /// value needs to be provided.
-#[derive(Copy, Clone, Eq, PartialEq)]
+#[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub struct Type(c_int);
 
 impl Type {
@@ -318,7 +322,7 @@ impl From<Type> for c_int {
 ///
 /// This type is freely interconvertible with C's `int` type, however, if a raw
 /// value needs to be provided.
-#[derive(Copy, Clone, Eq, PartialEq)]
+#[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub struct Protocol(c_int);
 
 impl Protocol {

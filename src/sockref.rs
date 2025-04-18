@@ -79,7 +79,7 @@ impl<'s> Deref for SockRef<'s> {
 }
 
 /// On Windows, a corresponding `From<&impl AsSocket>` implementation exists.
-#[cfg(any(unix, target_os = "wasi"))]
+#[cfg(any(unix, all(target_os = "wasi", not(target_env = "p1"))))]
 #[cfg_attr(docsrs, doc(cfg(any(unix, target_os = "wasi"))))]
 impl<'s, S> From<&'s S> for SockRef<'s>
 where
@@ -91,6 +91,24 @@ where
         assert!(fd >= 0);
         SockRef {
             socket: ManuallyDrop::new(unsafe { Socket::from_raw_fd(fd) }),
+            _lifetime: PhantomData,
+        }
+    }
+}
+
+/// WASI P1 implementation
+#[cfg(all(target_os = "wasi", target_env = "p1"))]
+#[cfg_attr(docsrs, doc(cfg(all(target_os = "wasi", target_env = "p1"))))]
+impl<'s, S> From<&'s S> for SockRef<'s>
+where
+    S: AsFd,
+{
+    /// The caller must ensure `S` is actually a socket.
+    fn from(socket: &'s S) -> Self {
+        let fd = socket.as_fd().as_raw_fd();
+        assert!(fd >= 0);
+        SockRef {
+            socket: ManuallyDrop::new(Socket::from_raw(fd)),
             _lifetime: PhantomData,
         }
     }
