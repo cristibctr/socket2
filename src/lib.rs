@@ -182,7 +182,7 @@ mod sockref;
 #[cfg_attr(target_os = "wasi", path = "sys/wasi.rs")]
 mod sys;
 
-#[cfg(not(any(windows, unix, all(target_os = "wasi", target_env = "p2"))))]
+#[cfg(not(any(windows, unix, all(target_os = "wasi", any(target_env = "p2", target_env = "p1")))))]
 compile_error!("Socket2 doesn't support the compile target");
 
 use sys::c_int;
