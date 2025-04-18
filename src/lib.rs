@@ -179,10 +179,12 @@ mod sockref;
 
 #[cfg_attr(unix, path = "sys/unix.rs")]
 #[cfg_attr(windows, path = "sys/windows.rs")]
-#[cfg_attr(target_os = "wasi", path = "sys/wasi.rs")]
+#[cfg_attr(all(target_os = "wasi", target_env = "p1"), path = "sys/wasip1.rs")]
+#[cfg_attr(all(target_os = "wasi", not(target_env = "p1")), path = "sys/wasi.rs")] // Default WASI (P2 etc.)
 mod sys;
 
-#[cfg(not(any(windows, unix, all(target_os = "wasi", any(target_env = "p2", target_env = "p1")))))]
+// If the target is WASI, one of the above `cfg_attr` must have matched.
+#[cfg(not(any(windows, unix, target_os = "wasi")))]
 compile_error!("Socket2 doesn't support the compile target");
 
 use sys::c_int;
