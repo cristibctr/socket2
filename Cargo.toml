@@ -1,6 +1,6 @@
 [package]
 name          = "socket2"
-version       = "0.5.8"
+version       = "0.5.9"
 authors       = [
   "Alex Crichton <alex@alexcrichton.com>",
   "Thomas de Zeeuw <thomasdezeeuw@gmail.com>"
@@ -35,7 +35,7 @@ targets = ["aarch64-apple-ios", "aarch64-linux-android", "x86_64-apple-darwin", 
 features = ["all"]
 
 [target.'cfg(any(unix, target_os = "wasi"))'.dependencies]
-libc = "0.2.162"
+libc = "0.2.171"
 
 [target.'cfg(windows)'.dependencies.windows-sys]
 version = "0.52"
